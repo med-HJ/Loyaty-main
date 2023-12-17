@@ -1,7 +1,6 @@
 package com.example.Loyalty.web;
 
-import com.example.Loyalty.dtos.MemberDTO;
-import com.example.Loyalty.dtos.RewardRedemptionDTO;
+
 import com.example.Loyalty.models.Member;
 import com.example.Loyalty.models.Reward;
 import com.example.Loyalty.services.MemberService;

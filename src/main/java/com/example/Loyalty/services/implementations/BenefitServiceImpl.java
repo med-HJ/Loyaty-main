@@ -1,7 +1,7 @@
 package com.example.Loyalty.services.implementations;
 
 
-import com.example.Loyalty.mappers.BenefitMapperImpl;
+
 import com.example.Loyalty.models.Benefit;
 import com.example.Loyalty.repositories.BenefitRepository;
 import com.example.Loyalty.services.BenefitService;
@@ -19,7 +19,7 @@ import java.util.NoSuchElementException;
 @Slf4j
 public class BenefitServiceImpl implements BenefitService {
     private final BenefitRepository benefitRepository;
-    private final BenefitMapperImpl benefitMapper;
+
     @Override
     public Benefit getById(Long id) {
         return benefitRepository.findById(id).orElse(null);
