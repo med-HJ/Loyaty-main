@@ -32,26 +32,7 @@ public class ActionServiceImpl implements ActionService {
     }
 
 
-    private void createDebitMovement(Action savedAction, String motif, int amount) {
-        Movement movement = new Movement();
-        movement.setMotif(motif);
-        movement.setAmount(amount);
-        movement.setDirection(MovementType.DEBIT);
-        movement.setAction(savedAction);
 
-        movementService.createMovement(movement);
-    }
-
-    private void createCreditMovement(Action savedAction, String motif, int amount, Optional<Long> targetMember) {
-        Movement movement = new Movement();
-        movement.setMotif(motif);
-        movement.setAmount(amount);
-        movement.setDirection(MovementType.CREDIT);
-        movement.setAction(savedAction);
-        movement.setTargetMember(targetMember.isPresent() ? memberRepository.findById(targetMember.get()).orElse(null) : null);
-
-        movementService.createMovement(movement);
-    }
 
     @Override
     public Action createAction(Action action, Optional<Long> targetMember) {
@@ -60,14 +41,39 @@ public class ActionServiceImpl implements ActionService {
 
         ActionType actionType = action.getType();
         if (actionType == ActionType.EARN) {
-            createCreditMovement(savedAction, action.getName(), action.getPoints(), targetMember);
+            Movement movement = new Movement();
+            movement.setMotif(action.getName());
+            movement.setAmount(action.getPoints());
+            movement.setDirection(MovementType.CREDIT);
+            movement.setAction(savedAction);
+            movement.setTargetMember(targetMember.isPresent() ? memberRepository.findById(targetMember.get()).orElse(null) : null);
+
+            movementService.createMovement(movement);
+
         } else if (actionType == ActionType.BURN) {
-            createDebitMovement(savedAction, action.getName(), action.getPoints());
+            Movement movement = new Movement();
+            movement.setMotif(action.getName());
+            movement.setAmount(action.getPoints());
+            movement.setDirection(MovementType.DEBIT);
+            movement.setAction(savedAction);
+
+            movementService.createMovement(movement);
+
         } else if (actionType == ActionType.TRANSFER && targetMember.isPresent()) {
             String transferMotif = String.format("Transfer point to %s", targetMember.get());
             String creditMotif = String.format("Transfer from %s", action.getMember().getId());
-            createDebitMovement(savedAction, transferMotif, action.getPoints());
-            createCreditMovement(savedAction, creditMotif, action.getPoints(), targetMember);
+            Movement movement = new Movement();
+            movement.setMotif(transferMotif);
+            movement.setAmount(action.getPoints());
+            movement.setDirection(MovementType.DEBIT);
+
+
+            movement.setDirection(MovementType.CREDIT);
+            movement.setAction(savedAction);
+            movement.setTargetMember(targetMember.isPresent() ? memberRepository.findById(targetMember.get()).orElse(null) : null);
+
+            movementService.createMovement(movement);
+
         }
 
         return savedAction;

@@ -255,7 +255,7 @@ public int countMembersByLevel(Long levelId) {
         }
     }
 
-    @Override
+
     public int getPointsBalanceByMemberId(Long memberId) {
         Member member = getById(memberId);
         if (member != null) {
@@ -265,7 +265,7 @@ public int countMembersByLevel(Long levelId) {
         }
     }
 
-    @Override
+
     public List<Reward> getRedemptionHistoryByMemberId(Long memberId) {
         Member member = getById(memberId);
         if (member != null) {
