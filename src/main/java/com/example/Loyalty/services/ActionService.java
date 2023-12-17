@@ -1,24 +1,25 @@
 package com.example.Loyalty.services;
 
-import com.example.Loyalty.dtos.ActionDTO;
+
 import com.example.Loyalty.enums.ActionType;
+import com.example.Loyalty.models.Action;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 public interface ActionService {
-    ActionDTO createAction(ActionDTO actionDTO, Optional<Long> targetMember);
-    ActionDTO updateAction(Long id, ActionDTO actionDTO, Optional<Long> targetMember);
+    Action createAction(Action action, Optional<Long> targetMember);
+    Action updateAction(Long id, Action action, Optional<Long> targetMember);
     boolean deleteAction(Long id);
-    ActionDTO getActionById(Long id);
-    List<ActionDTO> getAllActions();
-    List<ActionDTO> getActionsByType(ActionType actionType);
-    List<ActionDTO> getActionsByDateRange(LocalDateTime startDate, LocalDateTime endDate);
+    Action getActionById(Long id);
+    List<Action> getAllActions();
+    List<Action> getActionsByType(ActionType actionType);
+    List<Action> getActionsByDateRange(LocalDateTime startDate, LocalDateTime endDate);
     int calculateTotalPointsForMemberByType(Long memberId, ActionType type);
-    List<ActionDTO> getActionByRewardId(Long rewardId);
-    List<ActionDTO> getActionByEventId(Long eventId);
-    List<ActionDTO> getActionByCatalogId(Long catalogId);
+    List<Action> getActionByRewardId(Long rewardId);
+    List<Action> getActionByEventId(Long eventId);
+    List<Action> getActionByCatalogId(Long catalogId);
 
 
 

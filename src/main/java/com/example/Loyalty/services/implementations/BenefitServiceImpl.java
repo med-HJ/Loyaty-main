@@ -1,6 +1,6 @@
 package com.example.Loyalty.services.implementations;
 
-import com.example.Loyalty.dtos.BenefitDTO;
+
 import com.example.Loyalty.mappers.BenefitMapperImpl;
 import com.example.Loyalty.models.Benefit;
 import com.example.Loyalty.repositories.BenefitRepository;
@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -22,22 +21,18 @@ public class BenefitServiceImpl implements BenefitService {
     private final BenefitRepository benefitRepository;
     private final BenefitMapperImpl benefitMapper;
     @Override
-    public BenefitDTO getById(Long id) {
-        Benefit benefit = benefitRepository.findById(id).orElse(null);
-        return benefit != null ? benefitMapper.fromBenefit(benefit) : null;
+    public Benefit getById(Long id) {
+        return benefitRepository.findById(id).orElse(null);
     }
 
     @Override
-    public List<BenefitDTO> getAllBenefits() {
-        List<Benefit> benefits = benefitRepository.findAll();
-        return benefits.stream().map(benefitMapper::fromBenefit).collect(Collectors.toList());
+    public List<Benefit> getAllBenefits() {
+        return benefitRepository.findAll();
     }
 
     @Override
-    public BenefitDTO saveBenefit(BenefitDTO benefitDTO) {
-        Benefit benefit = benefitMapper.fromBenefitDTO(benefitDTO);
-        Benefit savedBenefit = benefitRepository.save(benefit);
-        return benefitMapper.fromBenefit(savedBenefit);
+    public Benefit saveBenefit(Benefit benefit) {
+        return benefitRepository.save(benefit);
     }
 
     @Override
@@ -47,21 +42,24 @@ public class BenefitServiceImpl implements BenefitService {
     }
 
     @Override
-    public List<BenefitDTO> getBenefitsByLevelId(Long levelId) {
-        List<Benefit> benefits = benefitRepository.findByLevelId(levelId);
-        return benefits.stream().map(benefitMapper::fromBenefit).collect(Collectors.toList());
+    public List<Benefit> getBenefitsByLevelId(Long levelId) {
+        return benefitRepository.findByLevelId(levelId);
     }
 
     @Override
-    public BenefitDTO updateBenefit(BenefitDTO benefitDTO) {
-        Benefit existingBenefit = benefitRepository.findById(benefitDTO.getId()).orElse(null);
+    public Benefit updateBenefit(Benefit updatedBenefit) {
+        Benefit existingBenefit = benefitRepository.findById(updatedBenefit.getId()).orElse(null);
 
         if (existingBenefit != null) {
-            Benefit updatedBenefit = benefitMapper.fromBenefitDTO(benefitDTO);
-            updatedBenefit = benefitRepository.save(updatedBenefit);
-            return benefitMapper.fromBenefit(updatedBenefit);
+            existingBenefit.setName(updatedBenefit.getName());
+            existingBenefit.setDescription(updatedBenefit.getDescription());
+            existingBenefit.setId(updatedBenefit.getId());
+            existingBenefit.setLevel(updatedBenefit.getLevel());
+
+            return benefitRepository.save(existingBenefit);
         } else {
             throw new NoSuchElementException("Benefit not found.");
         }
     }
+
 }

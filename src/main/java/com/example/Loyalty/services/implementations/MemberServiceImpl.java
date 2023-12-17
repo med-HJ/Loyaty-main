@@ -1,12 +1,8 @@
 package com.example.Loyalty.services.implementations;
 
-import com.example.Loyalty.dtos.ActionDTO;
-import com.example.Loyalty.dtos.MemberDTO;
-import com.example.Loyalty.dtos.RewardDTO;
-import com.example.Loyalty.dtos.RewardRedemptionDTO;
+
 import com.example.Loyalty.enums.ActionType;
-import com.example.Loyalty.mappers.MemberMapperImpl;
-import com.example.Loyalty.mappers.RewardMapperImpl;
+import com.example.Loyalty.models.Action;
 import com.example.Loyalty.models.Level;
 import com.example.Loyalty.models.Member;
 import com.example.Loyalty.models.Reward;
@@ -32,61 +28,49 @@ import java.util.stream.Collectors;
 @Slf4j
 public class MemberServiceImpl implements MemberService {
     private final MemberRepository memberRepository;
-    private final MemberMapperImpl memberMapper;
     private final RewardService rewardService;
-    private final Map<Long, List<RewardRedemptionDTO>> redemptionHistoryMap = new HashMap<>();
+    private final Map<Long, List<Reward>> redemptionHistoryMap = new HashMap<>();
 
     private final RewardRepository rewardRepository;
-    private final RewardMapperImpl rewardMapper;
     private final LevelRepository levelRepository;
     private final ActionService actionService;
     @Override
-    public MemberDTO getById(Long id) {
-        Member member = memberRepository.findById(id).orElse(null);
-        return member != null ? memberMapper.fromMember(member) : null;
+    public Member getById(Long id) {
+        return memberRepository.findById(id).orElse(null);
     }
 
     @Override
-    public List<MemberDTO> getAllMembers() {
-        List<Member> members = memberRepository.findAll();
-        return members.stream().map(memberMapper::fromMember).collect(Collectors.toList());
+    public List<Member> getAllMembers() {
+        return memberRepository.findAll();
     }
 
-@Override
-public MemberDTO saveMember(MemberDTO memberDTO) {
-    Member member = memberMapper.fromMemberDTO(memberDTO);
+    @Override
+    public Member saveMember(Member member) {
+        // Check if the member is being enrolled for the first time
+        boolean isNewEnrollment = (member.getId() == null);
 
-    // Check if the member is being enrolled for the first time
-    boolean isNewEnrollment = (member.getId() == null);
+        if (isNewEnrollment) {
+            Level defaultLevel = levelRepository.findById(1L).orElseThrow(() -> new NoSuchElementException("Default level not found"));
 
-    if (isNewEnrollment) {
-        Level defaultLevel = levelRepository.findById(1L).orElse(null);
-        if (defaultLevel == null) {
-            throw new NoSuchElementException("Default level not found");
+            // Set initial values for first-time enrollment
+            member.setTotalPoints(100);
+            member.setCurrentPoints(100);
+            member.setReferralCode(generateReferralCode());
+            member.setJoiningDate(LocalDate.now());
+            member.setLevel(defaultLevel);
+        } else {
+            // Get the current level of the member
+            Level currentLevel = levelRepository.findById(member.getLevel().getId()).orElseThrow(() -> new NoSuchElementException("Current level not found"));
+
+            // Update member's data without changing the level
+            member.setLevel(currentLevel);
         }
 
-        // Set initial values for first-time enrollment
-        member.setTotalPoints(100);
-        member.setCurrentPoints(100);
-        member.setReferralCode(generateReferralCode());
-        member.setJoiningDate(LocalDate.now());
-        member.setLevel(defaultLevel);
-    } else {
-        // Get the current level of the member
-        Level currentLevel = levelRepository.findById(memberDTO.getLevelId()).orElse(null);
-        if (currentLevel == null) {
-            throw new NoSuchElementException("Current level not found");
-        }
-
-        // Update member's data without changing the level
-        member.setLevel(currentLevel);
+        Member savedMember = memberRepository.save(member);
+        return savedMember;
     }
 
-    Member savedMember = memberRepository.save(member);
-    return memberMapper.fromMember(savedMember);
-}
-
-@Override
+    @Override
 public int countMembersByLevel(Long levelId) {
     return memberRepository.countMembersByLevelId(levelId); // Assuming you have a method in MemberRepository to count by level
 }
@@ -116,65 +100,7 @@ public int countMembersByLevel(Long levelId) {
         return codeBuilder.toString();
     }
 
-//    public void updateMemberLevel(Long memberId) {
-//        MemberDTO memberDTO = getById(memberId);
-//        if (memberDTO != null) {
-//            Level currentLevel = levelRepository.findById(memberDTO.getLevelId()).orElse(null);
-//            System.out.println(currentLevel.getMinPoints());
-//            if (currentLevel != null) {
-//                if (memberDTO.getTotalPoints() >= currentLevel.getMinPoints()) {
-//                    List<Level> higherLevels = levelRepository.findByMinPointsGreaterThan(currentLevel.getMinPoints());
-////                    System.out.println(higherLevels.toString());
-//                    Level nextLevel = higherLevels.stream()
-//                            .min(Comparator.comparing(Level::getMinPoints))
-//                            .orElse(null);
-//                    System.out.println(nextLevel.getMinPoints());
-//                    if (nextLevel != null) {
-//                        memberDTO.setLevelId(nextLevel.getId());
-//                        saveMember(memberDTO);
-//                    }
-//                }
-//            }
-//        }
-//    }
-//public Level updateMemberLevel(Long memberId) {
-//    MemberDTO memberDTO = getById(memberId);
-//    if (memberDTO != null) {
-//        Level currentLevel = levelRepository.findById(memberDTO.getLevelId()).orElse(null);
-//        if (currentLevel != null) {
-//            if (memberDTO.getTotalPoints() >= currentLevel.getMinPoints()) {
-//                List<Level> higherLevels = levelRepository.findByMinPointsGreaterThan(currentLevel.getMinPoints());
-//                Level nextLevel = higherLevels.stream()
-//                        .min(Comparator.comparing(Level::getMinPoints))
-//                        .orElse(null);
-//                return nextLevel;
-//            }
-//        }
-//    }
-//    return null;
-//}
-//public Level updateMemberLevel(Long memberId) {
-//    MemberDTO memberDTO = getById(memberId);
-//    if (memberDTO != null) {
-//        List<Level> higherLevels = levelRepository.findAllByOrderByMinPointsAsc();
-//
-//        List<Level> eligibleLevels = higherLevels.stream()
-//                .filter(level -> level.getMinPoints() <= memberDTO.getTotalPoints())
-//                .collect(Collectors.toList());
-//
-//        Level nextLevel = eligibleLevels.stream()
-//                .max(Comparator.comparing(Level::getMinPoints))
-//                .orElse(null);
-//
-//        if (nextLevel != null) {
-//            memberDTO.setLevelId(nextLevel.getId());
-//            saveMember(memberDTO);
-//        }
-//
-//        return nextLevel;
-//    }
-//    return null;
-//}
+
 
 
 
@@ -188,146 +114,134 @@ public int countMembersByLevel(Long levelId) {
             return false;
         }
     }
-    public MemberDTO updateMember(MemberDTO memberDTO) {
-        Member existingMember = memberRepository.findById(memberDTO.getId()).orElse(null);
+    @Override
+    public Member updateMember(Member member) {
+        Member existingMember = memberRepository.findById(member.getId()).orElse(null);
 
         if (existingMember != null) {
-            Member updatedMember = memberMapper.fromMemberDTO(memberDTO);
-            updatedMember = memberRepository.save(updatedMember);
-            return memberMapper.fromMember(updatedMember);
+            return memberRepository.save(member);
         } else {
             // Throw an exception or handle member not found scenario
             throw new NoSuchElementException("Member not found.");
         }
     }
 
-@Override
+    @Override
+    public void redeemPointsByReward(Long memberId, Long rewardId) {
+        Member member = getById(memberId);
+        Reward reward = rewardRepository.findById(rewardId).orElse(null); // Assuming you have a RewardService
 
-public void redeemPointsByReward(Long memberId, Long rewardId) {
-    MemberDTO memberDTO = getById(memberId);
-    Reward reward = rewardRepository.findById(rewardId).orElse(null); // Assuming you have a RewardService
-    RewardDTO rewardDTO = rewardMapper.fromReward(reward);
-    if (memberDTO != null && rewardDTO != null && rewardDTO.getStock() > 0) {
-        if (memberDTO.getTotalPoints() >= rewardDTO.getPointsRequired() && memberDTO.getLevelId() >= rewardDTO.getLevelId()) {
-            // Create a BURN action
-            ActionDTO actionDTO = new ActionDTO();
-            actionDTO.setName("Points Redemption");
-            actionDTO.setDate(LocalDateTime.now());
-            actionDTO.setDescription("Redeemed points for reward: " + rewardDTO.getName());
-            actionDTO.setPoints(rewardDTO.getPointsRequired()); // Negative points for BURN action
-            actionDTO.setType(ActionType.BURN);
-            actionDTO.setMemberId(memberId);
+        if (member != null && reward != null && reward.getStock() > 0) {
+            if (member.getTotalPoints() >= reward.getPointsRequired() && member.getLevel().getId() >= reward.getLevel().getId()) {
+                // Create a BURN action
+                Action action = new Action();
+                action.setName("Points Redemption");
+                action.setDate(LocalDateTime.now());
+                action.setDescription("Redeemed points for reward: " + reward.getName());
+                action.setPoints(-reward.getPointsRequired()); // Negative points for BURN action
+                action.setType(ActionType.BURN);
+                action.setMember(member);
 
-            actionService.createAction(actionDTO,null); // Assuming you have an ActionService
+                actionService.createAction(action, null); // Assuming you have an ActionService
+
+                // Deduct points from member's balance
+                int newTotalPoints = member.getCurrentPoints() - reward.getPointsRequired();
+                member.setCurrentPoints(newTotalPoints);
+
+                // Update the reward's availability
+                reward.setStock(reward.getStock() - 1);
+                rewardService.updateReward(rewardId, reward, reward.getLevel().getId());
+
+                // Save the updated member
+                saveMember(member);
+
+                // Add redemption history
+                List<Reward> redemptionHistory = redemptionHistoryMap.getOrDefault(memberId, new ArrayList<>());
+
+                Reward redemption = new Reward();
+                redemption.setId(rewardId);
+                redemption.setName(reward.getName());
+                redemption.setRedemptionDate(LocalDateTime.now());
+
+                redemptionHistory.add(redemption);
+                redemptionHistoryMap.put(memberId, redemptionHistory);
 
 
-            // Deduct points from member's balance
-            int newTotalPoints = memberDTO.getCurrentPoints() - rewardDTO.getPointsRequired();
-            memberDTO.setCurrentPoints(newTotalPoints);
-
-            // Update the reward's availability
-            rewardDTO.setStock(reward.getStock() - 1);
-            rewardService.updateReward(rewardId, rewardDTO); // Assuming you have an updateReward method in RewardService
-
-            // Save the updated member using the MemberService
-            saveMember(memberDTO);
-
-            List<RewardRedemptionDTO> redemptionHistory = redemptionHistoryMap.getOrDefault(memberId, new ArrayList<>());
-//
-            RewardRedemptionDTO redemptionDTO = new RewardRedemptionDTO();
-            redemptionDTO.setRewardId(rewardId);
-            redemptionDTO.setRewardName(rewardRepository.findById(rewardId).orElse(null).getName());
-            redemptionDTO.setRedemptionDate(LocalDateTime.now());
-
-            redemptionHistory.add(redemptionDTO);
-            redemptionHistoryMap.put(memberId, redemptionHistory);
-            // Save the updated member again to persist the redemption history
-            saveMember(memberDTO);
+                saveMember(member);
+            } else {
+                throw new IllegalArgumentException("Insufficient points or level to redeem this reward.");
+            }
         } else {
-            throw new IllegalArgumentException("Insufficient points or level to redeem this reward.");
+            throw new NoSuchElementException("Member or reward not found.");
         }
-    } else {
-        throw new NoSuchElementException("Member or reward not found.");
     }
-}
+
     @Override
     public void transferPoints(Long sourceMemberId, Long destinationMemberId, int pointsToTransfer) throws Exception {
-        MemberDTO sourceMemberDTO = getById(sourceMemberId);
-        MemberDTO destinationMemberDTO = getById(destinationMemberId);
+        Member sourceMember = getById(sourceMemberId);
+        Member destinationMember = getById(destinationMemberId);
 
-        if (sourceMemberDTO == null || destinationMemberDTO == null) {
+        if (sourceMember == null || destinationMember == null) {
             throw new NoSuchElementException("Member not found.");
         }
 
-        if (sourceMemberDTO.getCurrentPoints() < pointsToTransfer) {
+        if (sourceMember.getCurrentPoints() < pointsToTransfer) {
             throw new Exception("Insufficient points for transfer.");
         }
 
         // Deduct points from source member
-        sourceMemberDTO.setCurrentPoints(sourceMemberDTO.getCurrentPoints() - pointsToTransfer);
-        saveMember(sourceMemberDTO);
+        sourceMember.setCurrentPoints(sourceMember.getCurrentPoints() - pointsToTransfer);
+        saveMember(sourceMember);
 
         // Add points to destination member
+        destinationMember.setCurrentPoints(destinationMember.getCurrentPoints() + pointsToTransfer);
+        destinationMember.setTotalPoints(destinationMember.getTotalPoints() + pointsToTransfer);
+        checkAndUpdateLevel(destinationMember, destinationMember.getTotalPoints() + pointsToTransfer);
+        saveMember(destinationMember);
 
-        destinationMemberDTO.setCurrentPoints(destinationMemberDTO.getCurrentPoints() + pointsToTransfer);
-        destinationMemberDTO.setTotalPoints(destinationMemberDTO.getTotalPoints() + pointsToTransfer);
-        checkAndUpdateLevel(destinationMemberDTO,destinationMemberDTO.getTotalPoints() + pointsToTransfer);
-        saveMember(destinationMemberDTO);
-        ActionDTO actionDTO = new ActionDTO();
-        actionDTO.setName("Points Transfer");
-        actionDTO.setDate(LocalDateTime.now());
-        actionDTO.setDescription("Transfer points from "+sourceMemberDTO.getLastName()+" To "+destinationMemberDTO.getLastName());
-        actionDTO.setPoints(pointsToTransfer); // Negative points for BURN action
-        actionDTO.setType(ActionType.TRANSFER);
-        actionDTO.setMemberId(sourceMemberId);
+        Action action = new Action();
+        action.setName("Points Transfer");
+        action.setDate(LocalDateTime.now());
+        action.setDescription("Transfer points from " + sourceMember.getLastName() + " To " + destinationMember.getLastName());
+        action.setPoints(pointsToTransfer); // Negative points for BURN action
+        action.setType(ActionType.TRANSFER);
+        action.setMember(sourceMember);
 
-        actionService.createAction(actionDTO, destinationMemberId.describeConstable());
+        actionService.createAction(action, Optional.ofNullable(destinationMember.getId()));
     }
+
     @Override
     public void earnPoints(Long memberId, String activityName, int pointsEarned) {
-        MemberDTO memberDTO = getById(memberId);
-        if (memberDTO != null) {
-            ActionDTO actionDTO = new ActionDTO();
-            actionDTO.setName(activityName);
-            actionDTO.setDate(LocalDateTime.now());
-            actionDTO.setDescription("Earned points through activity: " + activityName);
-            actionDTO.setPoints(pointsEarned);
-            actionDTO.setType(ActionType.EARN);
-            actionDTO.setMemberId(memberId);
+        Member member = getById(memberId);
+        if (member != null) {
+            Action action = new Action();
+            action.setName(activityName);
+            action.setDate(LocalDateTime.now());
+            action.setDescription("Earned points through activity: " + activityName);
+            action.setPoints(pointsEarned);
+            action.setType(ActionType.EARN);
+            action.setMember(member);
 
-            actionService.createAction(actionDTO, memberId.describeConstable());
-
+            actionService.createAction(action, Optional.ofNullable(memberId));
 
             // Update the member's total points
-            int newTotalPoints = memberDTO.getTotalPoints() + pointsEarned;
-            memberDTO.setTotalPoints(newTotalPoints);
-            memberDTO.setCurrentPoints(newTotalPoints);
+            int newTotalPoints = member.getTotalPoints() + pointsEarned;
+            member.setTotalPoints(newTotalPoints);
+            member.setCurrentPoints(newTotalPoints);
 
             // Check and update member's level immediately if necessary
-            checkAndUpdateLevel(memberDTO,newTotalPoints);
-//            Level currentLevel = levelRepository.findById(memberDTO.getLevelId()).orElse(null);
-//            if (currentLevel != null) {
-//                Level nextLevel = levelRepository.findByMinPointsGreaterThan(currentLevel.getMinPoints())
-//                        .stream()
-//                        .filter(level -> newTotalPoints >= level.getMinPoints())
-//                        .min(Comparator.comparing(Level::getMinPoints))
-//                        .orElse(null);
-//
-//                if (nextLevel != null) {
-//                    memberDTO.setLevelId(nextLevel.getId());
-//                }
-//            }
+            checkAndUpdateLevel(member, newTotalPoints);
 
             // Save the updated member using the MemberService
-            saveMember(memberDTO);
+            saveMember(member);
         } else {
             // Throw an exception or handle member not found scenario
             throw new NoSuchElementException("Member not found.");
         }
     }
 
-    void checkAndUpdateLevel(MemberDTO memberDTO,int newTotalPoints){
-        Level currentLevel = levelRepository.findById(memberDTO.getLevelId()).orElse(null);
+    void checkAndUpdateLevel(Member member, int newTotalPoints) {
+        Level currentLevel = levelRepository.findById(member.getLevel().getId()).orElse(null);
         if (currentLevel != null) {
             Level nextLevel = levelRepository.findByMinPointsGreaterThan(currentLevel.getMinPoints())
                     .stream()
@@ -336,25 +250,26 @@ public void redeemPointsByReward(Long memberId, Long rewardId) {
                     .orElse(null);
 
             if (nextLevel != null) {
-                memberDTO.setLevelId(nextLevel.getId());
+                member.setLevel(nextLevel);
             }
         }
     }
+
     @Override
     public int getPointsBalanceByMemberId(Long memberId) {
-        MemberDTO memberDTO = getById(memberId);
-        if (memberDTO != null) {
-            return memberDTO.getTotalPoints();
+        Member member = getById(memberId);
+        if (member != null) {
+            return member.getTotalPoints();
         } else {
             throw new NoSuchElementException("Member not found.");
         }
     }
 
     @Override
-    public List<RewardRedemptionDTO> getRedemptionHistoryByMemberId(Long memberId) {
-        MemberDTO memberDTO = getById(memberId);
-        if (memberDTO != null) {
-            List<RewardRedemptionDTO> redemptionHistory = redemptionHistoryMap.getOrDefault(memberId, new ArrayList<>());
+    public List<Reward> getRedemptionHistoryByMemberId(Long memberId) {
+        Member member = getById(memberId);
+        if (member != null) {
+            List<Reward> redemptionHistory = redemptionHistoryMap.getOrDefault(memberId, new ArrayList<>());
             return redemptionHistory;
         } else {
             throw new NoSuchElementException("Member not found.");

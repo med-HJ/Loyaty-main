@@ -1,17 +1,16 @@
 package com.example.Loyalty.services;
 
-import com.example.Loyalty.dtos.LevelDTO;
-import com.example.Loyalty.dtos.MemberDTO;
+
 import com.example.Loyalty.models.Level;
 
 import java.util.List;
 
 public interface LevelService {
-    LevelDTO getById(Long id);
-    List<LevelDTO> getAllLevels();
-    LevelDTO saveLevel(LevelDTO levelDTO);
+    Level getById(Long id);
+    List<Level> getAllLevels();
+    Level saveLevel(Level level);
     Boolean deleteLevel(Long id);
-    LevelDTO updateLevel(LevelDTO levelDTO);
+    Level updateLevel(Level level);
 
     void updateCustomerCounts();
 }

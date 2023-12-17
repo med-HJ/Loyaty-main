@@ -21,7 +21,10 @@ public class Member {
     private String lastName;
     private String phone;
     private int totalPoints;
-
+    public Member(Long memberId) {
+        this.id = memberId;
+        // any other initialization if needed
+    }
     private int currentPoints;
     private String referralCode;
     private LocalDate dateOfBirth;

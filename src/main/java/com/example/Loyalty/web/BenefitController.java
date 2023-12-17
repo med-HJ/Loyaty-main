@@ -1,6 +1,7 @@
 package com.example.Loyalty.web;
 
-import com.example.Loyalty.dtos.BenefitDTO;
+
+import com.example.Loyalty.models.Benefit;
 import com.example.Loyalty.services.BenefitService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,24 +17,24 @@ import java.util.NoSuchElementException;
 public class BenefitController {
     private final BenefitService benefitService;
     @GetMapping("/{id}")
-    public ResponseEntity<BenefitDTO> getBenefitById(@PathVariable Long id) {
-        BenefitDTO benefitDTO = benefitService.getById(id);
-        if (benefitDTO != null) {
-            return new ResponseEntity<>(benefitDTO, HttpStatus.OK);
+    public ResponseEntity<Benefit> getBenefitById(@PathVariable Long id) {
+        Benefit benefit = benefitService.getById(id);
+        if (benefit != null) {
+            return new ResponseEntity<>(benefit, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
     @GetMapping
-    public ResponseEntity<List<BenefitDTO>> getAllBenefits() {
-        List<BenefitDTO> benefits = benefitService.getAllBenefits();
+    public ResponseEntity<List<Benefit>> getAllBenefits() {
+        List<Benefit> benefits = benefitService.getAllBenefits();
         return new ResponseEntity<>(benefits, HttpStatus.OK);
     }
 
     @PostMapping
-    public ResponseEntity<BenefitDTO> saveBenefit(@RequestBody BenefitDTO benefitDTO) {
-        BenefitDTO savedBenefit = benefitService.saveBenefit(benefitDTO);
+    public ResponseEntity<Benefit> saveBenefit(@RequestBody Benefit benefit) {
+        Benefit savedBenefit = benefitService.saveBenefit(benefit);
         return new ResponseEntity<>(savedBenefit, HttpStatus.CREATED);
     }
 
@@ -44,16 +45,16 @@ public class BenefitController {
     }
 
     @GetMapping("/level/{levelId}")
-    public ResponseEntity<List<BenefitDTO>> getBenefitsByLevelId(@PathVariable Long levelId) {
-        List<BenefitDTO> benefits = benefitService.getBenefitsByLevelId(levelId);
+    public ResponseEntity<List<Benefit>> getBenefitsByLevelId(@PathVariable Long levelId) {
+        List<Benefit> benefits = benefitService.getBenefitsByLevelId(levelId);
         return new ResponseEntity<>(benefits, HttpStatus.OK);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateBenefit(@PathVariable Long id, @RequestBody BenefitDTO benefitDTO) {
-        benefitDTO.setId(id); // Set the id from the path variable to the DTO
+    public ResponseEntity<?> updateBenefit(@PathVariable Long id, @RequestBody Benefit benefit) {
+        benefit.setId(id); // Set the id from the path variable to the
         try {
-            BenefitDTO updatedBenefit = benefitService.updateBenefit(benefitDTO);
+            Benefit updatedBenefit = benefitService.updateBenefit(benefit);
             return new ResponseEntity<>(updatedBenefit, HttpStatus.OK);
         } catch (NoSuchElementException e) {
             String errorMessage = "Benefit not found.";

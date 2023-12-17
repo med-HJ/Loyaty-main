@@ -1,6 +1,6 @@
 package com.example.Loyalty.web;
 
-import com.example.Loyalty.dtos.LevelDTO;
+import com.example.Loyalty.models.Level;
 import com.example.Loyalty.services.LevelService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,24 +19,24 @@ public class LevelController {
 
 
     @GetMapping("/{id}")
-    public ResponseEntity<LevelDTO> getLevelById(@PathVariable Long id) {
-        LevelDTO levelDTO = levelService.getById(id);
-        if (levelDTO != null) {
-            return new ResponseEntity<>(levelDTO, HttpStatus.OK);
+    public ResponseEntity<Level> getLevelById(@PathVariable Long id) {
+        Level level = levelService.getById(id);
+        if (level != null) {
+            return new ResponseEntity<>(level, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
     @GetMapping
-    public ResponseEntity<List<LevelDTO>> getAllLevels() {
-        List<LevelDTO> levels = levelService.getAllLevels();
+    public ResponseEntity<List<Level>> getAllLevels() {
+        List<Level> levels = levelService.getAllLevels();
         return new ResponseEntity<>(levels, HttpStatus.OK);
     }
 
     @PostMapping
-    public ResponseEntity<LevelDTO> saveLevel(@RequestBody LevelDTO levelDTO) {
-        LevelDTO savedLevel = levelService.saveLevel(levelDTO);
+    public ResponseEntity<Level> saveLevel(@RequestBody Level level) {
+        Level savedLevel = levelService.saveLevel(level);
         return new ResponseEntity<>(savedLevel, HttpStatus.CREATED);
     }
 
@@ -51,10 +51,10 @@ public class LevelController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateLevel(@PathVariable Long id, @RequestBody LevelDTO levelDTO) {
-        levelDTO.setId(id); // Set the id from the path variable to the DTO
+    public ResponseEntity<?> updateLevel(@PathVariable Long id, @RequestBody Level level) {
+        level.setId(id); // Set the id from the path variable to the
         try {
-            LevelDTO updatedLevel = levelService.updateLevel(levelDTO);
+            Level updatedLevel = levelService.updateLevel(level);
             return new ResponseEntity<>(updatedLevel, HttpStatus.OK);
         } catch (NoSuchElementException e) {
             String errorMessage = "Level not found.";

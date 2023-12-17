@@ -1,11 +1,7 @@
 package com.example.Loyalty.services.implementations;
 
-import com.example.Loyalty.dtos.EventDTO;
-import com.example.Loyalty.dtos.MemberDTO;
-import com.example.Loyalty.dtos.RewardDTO;
-import com.example.Loyalty.mappers.EventMapper;
-import com.example.Loyalty.mappers.MemberMapperImpl;
-import com.example.Loyalty.mappers.RewardMapperImpl;
+
+
 import com.example.Loyalty.models.*;
 import com.example.Loyalty.repositories.CampaignRepository;
 import com.example.Loyalty.repositories.EventRepository;
@@ -24,37 +20,34 @@ import java.util.NoSuchElementException;
 public class EventServiceImpl implements EventService {
     @Autowired
     private EventRepository eventRepository;
-    private EventMapper eventMapper;
+
     private RewardRepository rewardRepository;
     private CampaignRepository campaignRepository;
-    private MemberMapperImpl memberMapper;
-    private RewardMapperImpl rewardMapper;
+
     @Autowired
-    public EventServiceImpl(EventRepository eventRepository, EventMapper eventMapper, RewardRepository rewardRepository, CampaignRepository campaignRepository, MemberMapperImpl memberMapper, RewardMapperImpl rewardMapper){
+    public EventServiceImpl(EventRepository eventRepository, RewardRepository rewardRepository, CampaignRepository campaignRepository){
         this.eventRepository= eventRepository;
         this.rewardRepository= rewardRepository;
-        this.eventMapper= eventMapper;
         this.campaignRepository= campaignRepository;
-        this.memberMapper= memberMapper;
-        this.rewardMapper= rewardMapper;
+
     }
     @Override
-    public EventDTO createEvent(EventDTO eventData) {
-        Event event= eventMapper.convertToEvent(eventData);
-        event= eventRepository.save(event);
-
-        return eventMapper.convertToEventDTO(event);
+    public Event createEvent(Event eventData) {
+        Event event = eventRepository.save(eventData);
+        return event;
     }
 
     @Override
-    public EventDTO updateEvent(Long eventId, EventDTO eventData) {
+    public Event updateEvent(Long eventId, Event eventData) {
         Event isEventExist = eventRepository.findById(eventId)
-                .orElseThrow(()-> new NoSuchElementException("Event not found with ID: " + eventId));
+                .orElseThrow(() -> new NoSuchElementException("Event not found with ID: " + eventId));
+
         isEventExist.setEventName(eventData.getEventName());
         isEventExist.setEventDate(eventData.getEventDate());
         isEventExist.setDescription(eventData.getDescription());
-        isEventExist= eventRepository.save(isEventExist);
-        return eventMapper.convertToEventDTO(isEventExist);
+
+        Event updatedEvent = eventRepository.save(isEventExist);
+        return updatedEvent;
     }
 
     @Override
@@ -68,62 +61,46 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public EventDTO getEventById(Long eventId) {
-        Event event= eventRepository.findById(eventId).orElse(null);
-        if(event == null){
-            return null;
-        }
-        else{
-            return eventMapper.convertToEventDTO(event);
-        }
+    public Event getEventById(Long eventId) {
+        return eventRepository.findById(eventId).orElse(null);
     }
 
     @Override
-    public List<EventDTO> getAllEvents() {
-        try{
-            List<Event> events= eventRepository.findAll();
-            List<EventDTO> eventDTOS = new ArrayList<>();
-            for(Event event: events){
-                eventDTOS.add(eventMapper.convertToEventDTO(event));
-            }
-            return  eventDTOS;
-
-        }catch (Exception e){
+    public List<Event> getAllEvents() {
+        try {
+            return eventRepository.findAll();
+        } catch (Exception e) {
             e.printStackTrace();
             throw e;
         }
     }
 
     @Override
-    public List<EventDTO> getEventsByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
-        try{
-            List<Event> events= eventRepository.getEventsByDateRange(startDate, endDate);
-            List<EventDTO> eventDTOS= new ArrayList<>();
-            for(Event event: events){
-                eventDTOS.add(eventMapper.convertToEventDTO(event));
-            }
-            return eventDTOS;
-        }catch (Exception e){
+    public List<Event> getEventsByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+        try {
+            return eventRepository.getEventsByDateRange(startDate, endDate);
+        } catch (Exception e) {
             e.printStackTrace();
             throw e;
         }
     }
 
+
     @Override
-    public List<EventDTO> getEventsByDescription(String keyword) {
-        try{
-            List<Event> events= eventRepository.findAll();
-            List<EventDTO> eventDTOS= new ArrayList<>();
-            keyword=keyword.toLowerCase();
-            for(Event event: events){
-                if ((event.getDescription()!=null && event.getDescription().toLowerCase().contains(keyword))
-                        ||(event.getEventName()!=null && event.getEventName().toLowerCase().contains(keyword))
-                        ||( event.getCampaigns()!=null && event.getCampaigns().contains(keyword))){
-                    eventDTOS.add(eventMapper.convertToEventDTO(event));
+    public List<Event> getEventsByDescription(String keyword) {
+        try {
+            List<Event> events = eventRepository.findAll();
+            List<Event> filteredEvents = new ArrayList<>();
+            keyword = keyword.toLowerCase();
+
+            for (Event event : events) {
+                if ((event.getDescription() != null && event.getDescription().toLowerCase().contains(keyword))
+                        || (event.getEventName() != null && event.getEventName().toLowerCase().contains(keyword))) {
+                    filteredEvents.add(event);
                 }
             }
-            return eventDTOS;
-        }catch (Exception e){
+            return filteredEvents;
+        } catch (Exception e) {
             e.printStackTrace();
             throw e;
         }
@@ -135,16 +112,11 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public List<EventDTO> getEventsForMember(Long memberId) {
-        try{
-            List<Event> events= eventRepository.getEventsByMemberId(memberId);
-            List<EventDTO> eventDTOS= new ArrayList<>();
-            for(Event event: events){
-                eventDTOS.add(eventMapper.convertToEventDTO(event));
-            }
-            return eventDTOS;
-
-        }catch (Exception e){
+    public List<Event> getEventsForMember(Long memberId) {
+        try {
+            List<Event> events = eventRepository.getEventsByMemberId(memberId);
+            return events;
+        } catch (Exception e) {
             e.printStackTrace();
             throw e;
         }
@@ -152,19 +124,16 @@ public class EventServiceImpl implements EventService {
 
 
     @Override
-    public List<RewardDTO> getRewardsForEvent(Long eventId) {
-        try{
-            List<Reward> rewards= eventRepository.getRewardsByEventId(eventId);
-            List<RewardDTO> rewardDTOS= new ArrayList<>();
-            for (Reward reward: rewards){
-                rewardDTOS.add(rewardMapper.rewardmodelMapper().map(reward, RewardDTO.class));
-            }
-            return rewardDTOS;
-        }catch (Exception e) {
+    public List<Reward> getRewardsForEvent(Long eventId) {
+        try {
+            List<Reward> rewards = eventRepository.getRewardsByEventId(eventId);
+            return rewards;
+        } catch (Exception e) {
             e.printStackTrace();
             throw e;
         }
     }
+
 
     @Override
     public void associateRewardsWithEvent(Long eventId, List<Long> rewardsId) {
@@ -253,20 +222,15 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public List<MemberDTO> getParticipantsForEvent(Long eventId) {
-        try{
-            List<Member> members= eventRepository.getMembersByEventId(eventId);
-            List<MemberDTO> memberDTOS= new ArrayList<>();
-            for(Member member: members){
-                memberDTOS.add(memberMapper.fromMember(member));
-            }
-            return memberDTOS;
-        }catch (Exception e){
+    public List<Member> getParticipantsForEvent(Long eventId) {
+        try {
+            return eventRepository.getMembersByEventId(eventId);
+        } catch (Exception e) {
             e.printStackTrace();
             throw e;
         }
-
     }
+
 
 
 }

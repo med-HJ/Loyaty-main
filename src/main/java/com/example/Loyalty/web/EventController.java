@@ -1,8 +1,9 @@
 package com.example.Loyalty.web;
 
-import com.example.Loyalty.dtos.EventDTO;
-import com.example.Loyalty.dtos.MemberDTO;
-import com.example.Loyalty.dtos.RewardDTO;
+
+import com.example.Loyalty.models.Event;
+import com.example.Loyalty.models.Member;
+import com.example.Loyalty.models.Reward;
 import com.example.Loyalty.services.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -26,9 +27,9 @@ public class EventController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createEvent(@RequestBody EventDTO eventDTO) {
+    public ResponseEntity<?> createEvent(@RequestBody Event event) {
         try {
-            EventDTO createEvent = eventService.createEvent(eventDTO);
+            Event createEvent = eventService.createEvent(event);
             return new ResponseEntity<>(createEvent, HttpStatus.CREATED);
 
         }catch (Exception e){
@@ -38,7 +39,7 @@ public class EventController {
     }
 
     @GetMapping
-    public List<EventDTO> getAllEvents(){
+    public List<Event> getAllEvents(){
         return eventService.getAllEvents();
     }
     @GetMapping("/{id}")
@@ -46,19 +47,19 @@ public class EventController {
         if(id == null){
             return new ResponseEntity<>("Id is Required", HttpStatus.BAD_REQUEST);
         }
-        EventDTO eventDTO= eventService.getEventById(id);
-        if(eventDTO== null){
+        Event event= eventService.getEventById(id);
+        if(event== null){
             return new ResponseEntity<>("Event not found", HttpStatus.NOT_FOUND);
         }
         else{
-            return new ResponseEntity<>(eventDTO, HttpStatus.OK);
+            return new ResponseEntity<>(event, HttpStatus.OK);
         }
 
     }
     @PutMapping("/{id}")
-    public ResponseEntity<?>updateEvent(@PathVariable Long id, @RequestBody EventDTO eventDTO){
+    public ResponseEntity<?>updateEvent(@PathVariable Long id, @RequestBody Event event){
         try{
-            EventDTO updateEvent= eventService.updateEvent(id, eventDTO);
+            Event updateEvent= eventService.updateEvent(id, event);
             return new ResponseEntity<>(updateEvent, HttpStatus.OK);
         }catch (NoSuchElementException e){
             return new ResponseEntity<>("Event Not found", HttpStatus.NOT_FOUND);
@@ -81,13 +82,13 @@ public class EventController {
         if(id==null){
             return new ResponseEntity<>("Id is required", HttpStatus.BAD_REQUEST);
         }
-        List<EventDTO> eventDTOS= eventService.getEventsForMember(id);
-        if(eventDTOS.isEmpty()){
+        List<Event> eventS= eventService.getEventsForMember(id);
+        if(eventS.isEmpty()){
             return new ResponseEntity<>("No events found for this member", HttpStatus.NOT_FOUND);
 
         }
         else{
-            return new ResponseEntity<>(eventDTOS, HttpStatus.OK);
+            return new ResponseEntity<>(eventS, HttpStatus.OK);
         }
     }
     @GetMapping("/event-description")
@@ -95,11 +96,11 @@ public class EventController {
         if(keyword ==null || keyword.isEmpty()){
             return new ResponseEntity<>("Keyword is required", HttpStatus.BAD_REQUEST);
         }
-        List<EventDTO> eventDTOS= eventService.getEventsByDescription(keyword);
-        if(eventDTOS.isEmpty()){
+        List<Event> eventS= eventService.getEventsByDescription(keyword);
+        if(eventS.isEmpty()){
             return new ResponseEntity<>("No events Found", HttpStatus.NOT_FOUND);
         }else{
-            return new ResponseEntity<>(eventDTOS, HttpStatus.OK);
+            return new ResponseEntity<>(eventS, HttpStatus.OK);
         }
     }
     @GetMapping("/by-date-range")
@@ -107,12 +108,12 @@ public class EventController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate
     ){
-        List<EventDTO> eventDTOS= eventService.getEventsByDateRange(startDate, endDate);
-        if(eventDTOS.isEmpty()){
+        List<Event> eventS= eventService.getEventsByDateRange(startDate, endDate);
+        if(eventS.isEmpty()){
             return new ResponseEntity<>("No events found with this date ", HttpStatus.NOT_FOUND);
         }
         else {
-            return new ResponseEntity<>(eventDTOS, HttpStatus.OK);
+            return new ResponseEntity<>(eventS, HttpStatus.OK);
         }
     }
 
@@ -143,8 +144,8 @@ public class EventController {
         if (campaignsId == null || campaignsId.isEmpty()){
             return new ResponseEntity<>("Campaign IDs must be provided", HttpStatus.BAD_REQUEST);
         }
-        EventDTO eventDTO= eventService.getEventById(eventId);
-        if (eventDTO == null){
+        Event event= eventService.getEventById(eventId);
+        if (event == null){
             return new ResponseEntity<>("No events found with this ID ", HttpStatus.NOT_FOUND);
         }
         try {
@@ -168,8 +169,8 @@ public class EventController {
             return new ResponseEntity<>("Campaign IDs must be provided", HttpStatus.BAD_REQUEST);
         }
 
-        EventDTO eventDTO= eventService.getEventById(eventId);
-        if (eventDTO == null){
+        Event event= eventService.getEventById(eventId);
+        if (event == null){
             return new ResponseEntity<>("No events found with this ID ", HttpStatus.NOT_FOUND);
         }
         try {
@@ -196,8 +197,8 @@ public class EventController {
             return new ResponseEntity<>("Reward IDs must be provided", HttpStatus.BAD_REQUEST);
         }
 
-        EventDTO eventDTO = eventService.getEventById(eventId);
-        if (eventDTO == null) {
+        Event event = eventService.getEventById(eventId);
+        if (event == null) {
             return new ResponseEntity<>("No events found with this ID", HttpStatus.NOT_FOUND);
         }
 
@@ -218,13 +219,13 @@ public class EventController {
         if(eventId==null){
             return new ResponseEntity<>("Id is required", HttpStatus.BAD_REQUEST);
         }
-        List<MemberDTO> memberDTOS= eventService.getParticipantsForEvent(eventId);
-        if(memberDTOS.isEmpty()){
+        List<Member> memberS= eventService.getParticipantsForEvent(eventId);
+        if(memberS.isEmpty()){
             return new ResponseEntity<>("No members found for this event", HttpStatus.NOT_FOUND);
 
         }
         else{
-            return new ResponseEntity<>(memberDTOS, HttpStatus.OK);
+            return new ResponseEntity<>(memberS, HttpStatus.OK);
         }
     }
     @GetMapping("/{eventId}/rewards")
@@ -232,13 +233,13 @@ public class EventController {
         if(eventId==null){
             return new ResponseEntity<>("Id is required", HttpStatus.BAD_REQUEST);
         }
-        List<RewardDTO> rewardDTOS= eventService.getRewardsForEvent(eventId);
-        if(rewardDTOS.isEmpty()){
+        List<Reward> rewardS= eventService.getRewardsForEvent(eventId);
+        if(rewardS.isEmpty()){
             return new ResponseEntity<>("No rewards found for this event", HttpStatus.NOT_FOUND);
 
         }
         else{
-            return new ResponseEntity<>(rewardDTOS, HttpStatus.OK);
+            return new ResponseEntity<>(rewardS, HttpStatus.OK);
         }
     }
 

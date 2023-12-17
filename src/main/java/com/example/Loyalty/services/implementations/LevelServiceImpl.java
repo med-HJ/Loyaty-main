@@ -1,8 +1,5 @@
 package com.example.Loyalty.services.implementations;
 
-
-import com.example.Loyalty.dtos.LevelDTO;
-import com.example.Loyalty.mappers.LevelMapperImpl;
 import com.example.Loyalty.models.Level;
 import com.example.Loyalty.repositories.LevelRepository;
 import com.example.Loyalty.services.LevelService;
@@ -22,14 +19,13 @@ import java.util.stream.Collectors;
 @Slf4j
 public class LevelServiceImpl implements LevelService {
     private final LevelRepository levelRepository;
-    private final LevelMapperImpl levelMapper;
     private final MemberService memberService;
 
     @Override
-    public LevelDTO getById(Long id) {
-        Level level = levelRepository.findById(id).orElse(null);
-        return level != null ? levelMapper.fromLevel(level) : null;
+    public Level getById(Long id) {
+        return levelRepository.findById(id).orElse(null);
     }
+
     @Override
     public void updateCustomerCounts() {
         List<Level> levels = levelRepository.findAll();
@@ -41,43 +37,31 @@ public class LevelServiceImpl implements LevelService {
     }
 
     @Override
-    public List<LevelDTO> getAllLevels() {
-        List<Level> levels = levelRepository.findAll();
-        return levels.stream().map(levelMapper::fromLevel).collect(Collectors.toList());
+    public List<Level> getAllLevels() {
+        return levelRepository.findAll();
     }
-//@Override
-//public List<LevelDTO> getAllLevels() {
-//    List<Level> levels = levelRepository.findAll();
-//    return levels.stream()
-//            .map(level -> {
-//                LevelDTO levelDTO = levelMapper.fromLevel(level);
-//                int customerCount = memberService.countMembersByLevel(level.getId());
-//                levelDTO.setCustomerCount(customerCount);
-//                return levelDTO;
-//            })
-//            .collect(Collectors.toList());
-//}
+
     @Override
-    public LevelDTO saveLevel(LevelDTO levelDTO) {
-        Level level = levelMapper.fromLevelDTO(levelDTO);
-        Level savedLevel = levelRepository.save(level);
-        return levelMapper.fromLevel(savedLevel);
+    public Level saveLevel(Level level) {
+        return levelRepository.save(level);
     }
 
     @Override
     public Boolean deleteLevel(Long id) {
-        levelRepository.deleteById(id);
-        return true;
+        try {
+            levelRepository.deleteById(id);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     @Override
-    public LevelDTO updateLevel(LevelDTO levelDTO) {
-        Level existingLevel = levelRepository.findById(levelDTO.getId()).orElse(null);
+    public Level updateLevel(Level updatedLevel) {
+        Level existingLevel = levelRepository.findById(updatedLevel.getId()).orElse(null);
 
         if (existingLevel != null) {
-            Level updatedLevel = levelMapper.fromLevelDTO(levelDTO);
-            updatedLevel = levelRepository.save(updatedLevel);
-            return levelMapper.fromLevel(updatedLevel);
+            return levelRepository.save(updatedLevel);
         } else {
             throw new NoSuchElementException("Level not found.");
         }

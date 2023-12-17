@@ -1,7 +1,8 @@
 package com.example.Loyalty.web;
 
-import com.example.Loyalty.dtos.ActionDTO;
+
 import com.example.Loyalty.enums.ActionType;
+import com.example.Loyalty.models.Action;
 import com.example.Loyalty.services.ActionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -23,12 +24,12 @@ public class ActionController {
         this.actionService= actionService;
     }
     @PostMapping
-    public ActionDTO createAction(@RequestBody ActionDTO actionDTO,  @RequestParam Optional<Long> targetMember){
-        return actionService.createAction(actionDTO, targetMember);
+    public Action createAction(@RequestBody Action action, @RequestParam Optional<Long> targetMember){
+        return actionService.createAction(action, targetMember);
     }
     @PutMapping("/{id}")
-    public ActionDTO updateAction(@PathVariable Long id, @RequestBody ActionDTO actionDTO, @RequestParam Optional<Long> targetMember){
-        return actionService.updateAction(id, actionDTO, targetMember);
+    public Action updateAction(@PathVariable Long id, @RequestBody Action action, @RequestParam Optional<Long> targetMember){
+        return actionService.updateAction(id, action, targetMember);
     }
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteAction(@PathVariable Long id){
@@ -40,24 +41,25 @@ public class ActionController {
             return new ResponseEntity<>("Failed to delete action", HttpStatus.NOT_FOUND);
         }
     }
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getActionById(@PathVariable Long id){
         if(id== null){
             return  new ResponseEntity<>("Id is required", HttpStatus.BAD_REQUEST);
         }
-        ActionDTO actionDTO=actionService.getActionById(id);
+        Action action=actionService.getActionById(id);
 
-        if(actionDTO == null){
+        if(action == null){
             return new ResponseEntity<>("Action not found", HttpStatus.NOT_FOUND);
         }
         else {
-            return new ResponseEntity<>(actionDTO, HttpStatus.OK);
+            return new ResponseEntity<>(action, HttpStatus.OK);
         }
 
     }
     @GetMapping
-    public ResponseEntity<List<ActionDTO>> getAllActions(){
-        List<ActionDTO> actions= actionService.getAllActions();
+    public ResponseEntity<List<Action>> getAllActions(){
+        List<Action> actions= actionService.getAllActions();
         if(actions.isEmpty()){
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
@@ -66,27 +68,27 @@ public class ActionController {
         }
     }
     @GetMapping("/type/{actionType}")
-    public ResponseEntity<List<ActionDTO>> getActionsByType(@PathVariable String actionType){
+    public ResponseEntity<List<Action>> getActionsByType(@PathVariable String actionType){
         ActionType enumActionType;
         try{
             enumActionType= ActionType.valueOf(actionType.toUpperCase());
         }catch (IllegalArgumentException e){
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        List<ActionDTO> actionDTOS= actionService.getActionsByType(enumActionType);
-        if(actionDTOS.isEmpty()){
+        List<Action> actionS= actionService.getActionsByType(enumActionType);
+        if(actionS.isEmpty()){
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } else{
-            return new ResponseEntity<>(actionDTOS, HttpStatus.OK);
+            return new ResponseEntity<>(actionS, HttpStatus.OK);
         }
     }
     @GetMapping("/by-date-range")
-    public ResponseEntity<List<ActionDTO>>getActionsByDateRange(
+    public ResponseEntity<List<Action>>getActionsByDateRange(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate
     ){
-        List<ActionDTO> actionDTOS= actionService.getActionsByDateRange(startDate, endDate);
-        return ResponseEntity.ok(actionDTOS);
+        List<Action> actionS= actionService.getActionsByDateRange(startDate, endDate);
+        return ResponseEntity.ok(actionS);
 
     }
 

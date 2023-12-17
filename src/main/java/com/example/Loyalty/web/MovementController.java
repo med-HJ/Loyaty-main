@@ -1,7 +1,6 @@
 package com.example.Loyalty.web;
 
-import com.example.Loyalty.dtos.ActionDTO;
-import com.example.Loyalty.dtos.MovementDTO;
+
 import com.example.Loyalty.enums.MovementType;
 import com.example.Loyalty.models.Movement;
 import com.example.Loyalty.services.MovementService;
@@ -22,11 +21,11 @@ public class MovementController {
         this.movementService= movementService;
     }
     @PostMapping
-    public MovementDTO createMovement(@RequestBody MovementDTO movementDTO){
-        return movementService.createMovement(movementDTO);
+    public Movement createMovement(@RequestBody Movement movement){
+        return movementService.createMovement(movement);
     }
     @GetMapping
-    public List<MovementDTO> getAllMovement(){
+    public List<Movement> getAllMovement(){
         return  movementService.getAllMovements();
     }
 
@@ -35,8 +34,8 @@ public class MovementController {
         return movementService.deleteMovement(id);
     }
     @PutMapping("/{id}")
-    public MovementDTO updateMovement(@PathVariable Long id,@RequestBody MovementDTO movementDTO){
-        MovementDTO updateMovement= movementService.updateMovement(id, movementDTO);
+    public Movement updateMovement(@PathVariable Long id,@RequestBody Movement movement){
+        Movement updateMovement= movementService.updateMovement(id, movement);
         return updateMovement;
     }
 
@@ -45,29 +44,29 @@ public class MovementController {
         if(id == null){
             return new ResponseEntity<>("Id is required", HttpStatus.BAD_REQUEST);
         }
-        MovementDTO movementDTO= movementService.getMovementById(id);
-        if(movementDTO == null){
+        Movement movement= movementService.getMovementById(id);
+        if(movement == null){
             return new ResponseEntity<>("Movement not found", HttpStatus.NOT_FOUND);
         }else {
-            return new ResponseEntity<>(movementDTO, HttpStatus.OK);
+            return new ResponseEntity<>(movement, HttpStatus.OK);
         }
 
     }
 
     @GetMapping("/direction/{type}")
-    public ResponseEntity<List<MovementDTO>> getMovementByDirection(@PathVariable String type){
+    public ResponseEntity<List<Movement>> getMovementByDirection(@PathVariable String type){
         MovementType enumMovement;
         try{
             enumMovement= MovementType.valueOf(type.toUpperCase());
         }catch (IllegalArgumentException e){
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        List<MovementDTO> movementDTOS= movementService.getMovementsByType(enumMovement);
-        if(movementDTOS.isEmpty()){
+        List<Movement> movementS= movementService.getMovementsByType(enumMovement);
+        if(movementS.isEmpty()){
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         else {
-            return new ResponseEntity<>(movementDTOS, HttpStatus.OK);
+            return new ResponseEntity<>(movementS, HttpStatus.OK);
         }
     }
 
@@ -76,12 +75,12 @@ public class MovementController {
         if(actionId== null){
             return new ResponseEntity<>("Id is required", HttpStatus.BAD_REQUEST);
         }
-        List<MovementDTO> movementDTOs= movementService.getMovementsByActionId(actionId);
-        if(movementDTOs.isEmpty()){
+        List<Movement> movements= movementService.getMovementsByActionId(actionId);
+        if(movements.isEmpty()){
             return new ResponseEntity<>("No movement associated with the action was found", HttpStatus.NOT_FOUND);
         }
         else {
-            return new ResponseEntity<>(movementDTOs, HttpStatus.OK);
+            return new ResponseEntity<>(movements, HttpStatus.OK);
         }
 
     }

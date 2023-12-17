@@ -2,6 +2,8 @@ package com.example.Loyalty.web;
 
 import com.example.Loyalty.dtos.MemberDTO;
 import com.example.Loyalty.dtos.RewardRedemptionDTO;
+import com.example.Loyalty.models.Member;
+import com.example.Loyalty.models.Reward;
 import com.example.Loyalty.services.MemberService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,78 +22,66 @@ import java.util.NoSuchElementException;
 public class MemberController {
     private final MemberService memberService;
     @GetMapping("/{id}")
-    public ResponseEntity<MemberDTO> getMemberById(@PathVariable Long id) {
-        MemberDTO memberDTO = memberService.getById(id);
-        if (memberDTO != null) {
-            return new ResponseEntity<>(memberDTO, HttpStatus.OK);
+    public ResponseEntity<Member> getMemberById(@PathVariable Long id) {
+        Member member = memberService.getById(id);
+        if (member != null) {
+            return new ResponseEntity<>(member, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
     @GetMapping
-    public ResponseEntity<List<MemberDTO>> getAllMembers() {
-        List<MemberDTO> members = memberService.getAllMembers();
+    public ResponseEntity<List<Member>> getAllMembers() {
+        List<Member> members = memberService.getAllMembers();
         return new ResponseEntity<>(members, HttpStatus.OK);
     }
     @PostMapping("/enroll")
-    public ResponseEntity<MemberDTO> saveMember(@RequestBody MemberDTO memberDTO) {
-        MemberDTO savedMember = memberService.saveMember(memberDTO);
+    public ResponseEntity<Member> saveMember(@RequestBody Member member) {
+        Member savedMember = memberService.saveMember(member);
         return new ResponseEntity<>(savedMember, HttpStatus.CREATED);
     }
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteMember(@PathVariable Long id) {
-        if(id == null){
-            return new ResponseEntity<>("{\"error\" : \"id is required\"}" , HttpStatus.BAD_REQUEST) ;
+        if (id == null) {
+            return new ResponseEntity<>("{\"error\" : \"id is required\"}", HttpStatus.BAD_REQUEST);
         }
         Boolean returnValue = memberService.deleteMember(id);
-        if(returnValue == null){
-            return new ResponseEntity<>("{\"error\" : \"member not found or there an error\"}" , HttpStatus.BAD_REQUEST) ;
+        if (returnValue == null) {
+            return new ResponseEntity<>("{\"error\" : \"member not found or there is an error\"}", HttpStatus.BAD_REQUEST);
         }
-        return new ResponseEntity<>("{\"deleted\" : true}" , HttpStatus.OK) ;
+        return new ResponseEntity<>("{\"deleted\" : true}", HttpStatus.OK);
     }
-//    @PutMapping("/{id}")
-//    public ResponseEntity<?> updateMember(@PathVariable Long id, @RequestBody MemberDTO memberDTO) {
-//        memberDTO.setId(id); // Set the id from the path variable to the DTO
-//        try {
-//            MemberDTO updatedMember = memberService.updateMember(memberDTO);
-//            return new ResponseEntity<>(updatedMember, HttpStatus.OK);
-//        } catch (NoSuchElementException e) {
-//            // Handle member not found scenario and return a custom error response
-//            String errorMessage = "Member not found.";
-//            return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
-//        }
-//    }
-@PutMapping("/{id}")
-public ResponseEntity<?> updateMember(@PathVariable Long id, @RequestBody MemberDTO updatedMemberDTO) {
-    try {
-        MemberDTO existingMemberDTO = memberService.getById(id);
 
-        if (existingMemberDTO != null) {
-            Long originalLevelId = existingMemberDTO.getLevelId();
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateMember(@PathVariable Long id, @RequestBody Member updatedMember) {
+        try {
+            Member existingMember = memberService.getById(id);
 
-            if (updatedMemberDTO.getFirstName() != null) {
-                existingMemberDTO.setFirstName(updatedMemberDTO.getFirstName());
+            if (existingMember != null) {
+                Long originalLevelId = existingMember.getLevel().getId();
+
+                if (updatedMember.getFirstName() != null) {
+                    existingMember.setFirstName(updatedMember.getFirstName());
+                }
+                if (updatedMember.getLastName() != null) {
+                    existingMember.setLastName(updatedMember.getLastName());
+                }
+
+                Member updatedMemberEntity = memberService.updateMember(existingMember);
+                updatedMemberEntity.getLevel().setId(originalLevelId);
+
+                return new ResponseEntity<>(updatedMemberEntity, HttpStatus.OK);
+            } else {
+                // Handle member not found scenario and return a custom error response
+                String errorMessage = "Member not found.";
+                return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
             }
-            if (updatedMemberDTO.getLastName() != null) {
-                existingMemberDTO.setLastName(updatedMemberDTO.getLastName());
-            }
-
-            MemberDTO updatedMember = memberService.updateMember(existingMemberDTO);
-            updatedMember.setLevelId(originalLevelId);
-
-            return new ResponseEntity<>(updatedMember, HttpStatus.OK);
-        } else {
+        } catch (NoSuchElementException e) {
             // Handle member not found scenario and return a custom error response
             String errorMessage = "Member not found.";
             return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
         }
-    } catch (NoSuchElementException e) {
-        // Handle member not found scenario and return a custom error response
-        String errorMessage = "Member not found.";
-        return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
     }
-}
-
     @PostMapping("/{memberId}/earn")
     public ResponseEntity<String> earnPoints(
             @PathVariable Long memberId,
@@ -133,14 +123,15 @@ public ResponseEntity<?> updateMember(@PathVariable Long id, @RequestBody Member
         }
     }
     @GetMapping("/{memberId}/redeem-history")
-    public ResponseEntity<List<RewardRedemptionDTO>> getRedeemHistory(@PathVariable Long memberId) {
+    public ResponseEntity<List<Reward>> getRedeemHistory(@PathVariable Long memberId) {
         try {
-            List<RewardRedemptionDTO> redemptionHistory = memberService.getRedemptionHistoryByMemberId(memberId);
+            List<Reward> redemptionHistory = memberService.getRedemptionHistoryByMemberId(memberId);
             return new ResponseEntity<>(redemptionHistory, HttpStatus.OK);
         } catch (NoSuchElementException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
     @PostMapping("/{sourceMemberId}/transfer/{destinationMemberId}")
     public ResponseEntity<String> transferPoints(
             @PathVariable Long sourceMemberId,

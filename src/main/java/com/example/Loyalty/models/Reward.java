@@ -27,7 +27,7 @@ public class Reward {
     private int pointsRequired;
 
     private int stock;
-
+    private LocalDateTime redemptionDate;
 
     private LocalDate expiryDate;
 
