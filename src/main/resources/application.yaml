@@ -1,0 +1,22 @@
+spring:
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/Loyalty2
+    username: root
+#     password: Ss12345678910
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
+    show_sql: true
+server:
+  port: 8080
