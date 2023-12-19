@@ -20,7 +20,9 @@ public class MovementServiceImpl implements MovementService {
 
     @Override
     public Movement createMovement(Movement movement) {
+
         return movementRepository.save(movement);
+
     }
 
     @Override

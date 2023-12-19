@@ -37,7 +37,6 @@ public class CampaignServiceImpl implements CampaignService {
     public Campaign updateCampaign(Long campaignId, Campaign updatedCampaign) {
         Campaign existingCampaign = campaignRepository.findById(campaignId).orElse(null);
         if (existingCampaign != null) {
-            // Update properties of the existing campaign with the values from the updated campaign
             existingCampaign.setName(updatedCampaign.getName());
             existingCampaign.setStartDate(updatedCampaign.getStartDate());
             existingCampaign.setEndDate(updatedCampaign.getEndDate());

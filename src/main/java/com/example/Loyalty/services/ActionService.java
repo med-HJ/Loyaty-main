@@ -17,14 +17,5 @@ public interface ActionService {
     List<Action> getActionsByType(ActionType actionType);
     List<Action> getActionsByDateRange(LocalDateTime startDate, LocalDateTime endDate);
     int calculateTotalPointsForMemberByType(Long memberId, ActionType type);
-    List<Action> getActionByRewardId(Long rewardId);
-    List<Action> getActionByEventId(Long eventId);
-    List<Action> getActionByCatalogId(Long catalogId);
 
-
-
-
-    // a verifier List<Action> getActionsByMemberId(Long memberId);
-    //List<Action> getActionByBenefitId(Long benefitId);
-    // cote admin List<Action> getActionByCampaign(Long campaignId);
 }

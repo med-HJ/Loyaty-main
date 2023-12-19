@@ -84,6 +84,7 @@ public class RewardController {
         return ResponseEntity.ok(rewards);
     }
 
+
     @GetMapping("/campaigns/{rewardId}")
     @ApiOperation("Get campaigns by Reward ID")
     public ResponseEntity<List<Campaign>> getCampaignsByRewardId(@PathVariable("rewardId") Long rewardId) {

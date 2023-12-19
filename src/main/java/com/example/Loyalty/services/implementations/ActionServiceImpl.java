@@ -32,7 +32,26 @@ public class ActionServiceImpl implements ActionService {
     }
 
 
+    private void createDebitMovement(Action savedAction, String motif, int amount) {
+        Movement movement = new Movement();
+        movement.setMotif(motif);
+        movement.setAmount(amount);
+        movement.setDirection(MovementType.DEBIT);
+        movement.setAction(savedAction);
 
+        movementService.createMovement(movement);
+    }
+
+    private void createCreditMovement(Action savedAction, String motif, int amount, Optional<Long> targetMember) {
+        Movement movement = new Movement();
+        movement.setMotif(motif);
+        movement.setAmount(amount);
+        movement.setDirection(MovementType.CREDIT);
+        movement.setAction(savedAction);
+        movement.setTargetMember(targetMember.isPresent() ? memberRepository.findById(targetMember.get()).orElse(null) : null);
+
+        movementService.createMovement(movement);
+    }
 
     @Override
     public Action createAction(Action action, Optional<Long> targetMember) {
@@ -66,14 +85,16 @@ public class ActionServiceImpl implements ActionService {
             movement.setMotif(transferMotif);
             movement.setAmount(action.getPoints());
             movement.setDirection(MovementType.DEBIT);
+            movement.setAction(savedAction);
 
-
+            movementService.createMovement(movement);
+            movement.setMotif(creditMotif);
             movement.setDirection(MovementType.CREDIT);
             movement.setAction(savedAction);
             movement.setTargetMember(targetMember.isPresent() ? memberRepository.findById(targetMember.get()).orElse(null) : null);
 
             movementService.createMovement(movement);
-
+            createCreditMovement(savedAction, creditMotif, action.getPoints(), targetMember);
         }
 
         return savedAction;
@@ -190,16 +211,5 @@ public class ActionServiceImpl implements ActionService {
         }
     }
 
-    @Override
-    public List<Action> getActionByRewardId(Long rewardId) {
-        return null;
-    }
-    @Override
-    public List<Action> getActionByEventId(Long eventId) {
-        return null;
-    }
-    @Override
-    public List<Action> getActionByCatalogId(Long catalogId) {
-        return null;
-    }
+
 }
