@@ -2,13 +2,13 @@ package com.example.Loyalty.web;
 
 import com.example.Loyalty.models.Catalog;
 import com.example.Loyalty.models.Reward;
-import com.example.Loyalty.services.CatalogService;
 
+
+import com.example.Loyalty.services.CatalogService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
